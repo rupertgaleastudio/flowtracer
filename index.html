@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FluidTracer</title>
+    <style>
+        html, body 
+        {
+            margin: 0; 
+            height: 100%; 
+            background: #07080a; 
+            color: #9aa4ad;
+            font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; 
+            overflow: hidden; 
+        }
+        #stage {
+            position: fixed;
+            inset: 0 300px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        #view 
+        {
+            max-width: 100%;
+            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+        #hud
+        {
+            position: fixed;
+            left: 24px;
+            bottom: 20px;
+            opacity: .8;
+            pointer-events: none;
+            text-shadow: 0 1px 2px #000;
+        }
+        #pane 
+        {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            width: 284px;
+            max-height: calc(100% - 16px);
+            overflow-y: auto;
+        }
+        @media (max-width: 800px) { #stage { inset: 0 0 45% 0; } 
+        #pane 
+        { 
+            top: auto; 
+            bottom: 0; 
+            right: 0; 
+            left: 0; 
+            width: auto; 
+            max-height: 45%; 
+        } 
+    }
+    </style>
+</head>
+<body>
+    <div id="stage"><canvas id="view"> </canvas></div>
+    <div id="hud"></div>
+    <div id="pane"></div>
+    <script type="module" src="/src.main.js"></script>
+</body>
+</html>
