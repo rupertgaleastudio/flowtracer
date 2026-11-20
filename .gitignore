@@ -1,0 +1,5 @@
+node_modules/
+dist/
+public/hdri/
+.DS_Store
+Thumbs.db
