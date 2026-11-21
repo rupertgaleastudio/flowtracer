@@ -79,6 +79,7 @@ export async function exportVideo(renderer, params, { onProgress, isCancelled })
         onProgress(`frame ${f + 1}/${frames} · ${done}/${spp} spp`);
     }
 
+    renderer.denoise(params);
     renderer.show(params.exposure);
     
     const frame = new VideoFrame(renderer.canvas, 

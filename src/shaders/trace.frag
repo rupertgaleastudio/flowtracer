@@ -4,6 +4,7 @@ precision highp int;
 precision highp sampler2D;
 
 uniform sampler2D uPrev;
+uniform sampler2D uPrevGuide;
 uniform vec2 uRes;
 uniform float uSampleIndex;
 uniform int uSpp;
@@ -37,7 +38,10 @@ uniform int   uBounces;
 uniform float uClamp;
 uniform float uFurnace;
 
-out vec4 fragColor;
+layout (location = 0) out vec4 fragColor; //rbg = avg color, a = avg luminance 
+layout (location = 1) out vec4 fragGuide; //xyz = first-hit normal, w = first-hit distance
+
+vec4 gGuide; // set by trace() for denoiser
 
 //---------RNG----------
 uint rngState;
@@ -149,6 +153,7 @@ float fresnelDielectric(float cosi, float eta)
 vec3 trace(vec3 ro, vec3 rd)
 {
     vec3 L = vec3(0.0), T = vec3(1.0);
+    gGuide = vec4(0.0, 0.0, 0.0, 100.0); // background: no normal, far away
     bool inside = false;
     bool furnace = uFurnace > 0.5;
     vec3 sigma = furnace ? vec3(0.0) : -log(clamp(uTint, vec3(0.001), vec3(1.0))) * uDensity;
@@ -203,6 +208,7 @@ vec3 trace(vec3 ro, vec3 rd)
         
         vec3 p = ro + rd * t;
         vec3 n = calcNormal(p);
+        if (b == 0) gGuide = vec4(n, t); // what the camera sees first
         if (dot(n, rd) > 0.0) n = -n; //face against the ray
         float eta = inside ? uIOR : 1.0 / uIOR;
         float F = fresnelDielectric(clamp(dot(-rd, n), 0.0, 1.0), eta);
@@ -229,6 +235,8 @@ void main()
     rngState = pcg(px.x + pcg(px.y + pcg(uint(uSampleIndex) * 9781u + 1u)));
 
     vec3 acc = vec3(0.0);
+    float acc2 = 0.0; // sum of luminance squared (for noise estimate)
+    vec4 accGuide = vec4(0.0);
     float aspect = uRes.x / uRes.y;
     float tf = tan(radians(uFov) * 0.5);
     for (int s = 0; s < 64; s++)
@@ -245,12 +253,19 @@ void main()
         {
             c = vec3(0.0);
         }
-        acc += min(c, vec3(uClamp));
+        c = min(c, vec3(uClamp));
+        acc += c;
+        float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+        acc2 += l * l;
+        accGuide += gGuide;
     }
 
-    vec3 prev = uSampleIndex > 0.5 ? texelFetch(uPrev, ivec2(gl_FragCoord.xy), 0).rgb : vec3(0.0);
+    ivec2 pix = ivec2(gl_FragCoord.xy);
+    vec4 prev = uSampleIndex > 0.5 ? texelFetch(uPrev, pix, 0) : vec4(0.0);
+    vec4 prevGuide = uSampleIndex > 0.5 ? texelFetch(uPrevGuide, pix, 0) : vec4(0.0);
+
     float n = uSampleIndex;
-    fragColor = vec4((prev * n + acc) / (n + float(uSpp)), 1.0);
+    float k = float(uSpp);
+    fragColor = (prev * n + vec4(acc, acc2)) / (n + k);
+    fragGuide = (prevGuide * n + accGuide) / (n + k);
 }
-
-

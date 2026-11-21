@@ -7,6 +7,7 @@ export const defaultParams = {
     density: 0.35,
     emissive: '#2fd3ff',
     emissiveStrength: 0.0,
+
     //Fluid
     viscosity: 0.35,
     volume: 1.0,
@@ -15,16 +16,19 @@ export const defaultParams = {
     noiseAmp: 0.04,
     noiseScale: 3.0,
     seed: 7,
+
     //Camera
     camYaw: 20,
     camPitch: 12,
     camDist: 7.5,
     fov:32,
     orbitSpeed: 0,
+
     //Light
     envIntensity: 1.0,
     background: '#030405',
     exposure: 1.0,
+
     //Render
     bounces: 12,
     previewSpp: 1,
@@ -32,11 +36,18 @@ export const defaultParams = {
     clamp: 24,
     shutter: 0.5, 
     furnace: false,
+
+    //Denoiser 
+    denoise: true,
+    denoiseStrength: 1.5, // higher = smoother, lower = keeps more detail
+    denoiseIters: 5, // passes: 5 reaches ~64 px
+
     //Animation
     time: 0,
     duration: 10,
     fps: 30,
     loop: true,
+
     //Output
     aspect: '16:9',
     previewShort: 540,

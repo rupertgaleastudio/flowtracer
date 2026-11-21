@@ -138,6 +138,17 @@ rend.addBinding(params, 'furnace',
     label: 'White furnace test' 
 });
 
+const dn = pane.addFolder(
+    {
+        title: 'Denoiser'
+    });
+dn.addBinding(params, 'denoise',
+    {
+        label: 'Denoise (D)'
+    });
+num (dn, 'denoiseStrength', 'Strength', 0, 5, 0.1);
+num(dn, 'denoiseIters', 'Passes', 1, 6, 1);
+
 const exp = pane.addFolder(
 { 
     title: 'Export video' 
@@ -201,9 +212,15 @@ file.addButton(
     onChange(); 
 });
 
-function onChange() 
+function onChange(ev) 
 {
   if (exporting) return;
+  // Denoiser settings only change the filter not the render, keep the samples and just save
+  if (ev?.target?.key?.startsWith('denoise'))
+  {
+    save();
+    return;
+  }
   applyPreviewSize();
   renderer.reset();
   save();
@@ -249,6 +266,11 @@ window.addEventListener('keydown', (e) =>
     { 
         e.preventDefault(); togglePlay(); 
     }
+    if (e.code === 'KeyD' && e.target.tagName !== 'INPUT')
+    {
+        params.denoise = !params.denoise; // quick before/after comparison
+        pane.refresh();
+    }
 });
 
 
@@ -280,11 +302,11 @@ function frame(now)
     {
         renderer.pass(params, params.previewSpp);
     }
+    renderer.denoise(params);
     renderer.show(params.exposure);
     hud.textContent = `${renderer.width}×${renderer.height} · ${renderer.samples} spp · t=${params.time.toFixed(2)}s${status ? ' · ' + status : ''}`;
 }
 requestAnimationFrame(frame);
 
-// Useful for console experiments e.g. flowtracer.params.ior = 2;
-flowtracer.onChange()
+// Useful for console experiments e.g. flowtracer.params.ior = 2; flowtracer.onChange()
 window.flowtracer = { renderer, params, onChange };
