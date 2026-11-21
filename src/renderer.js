@@ -1,5 +1,5 @@
 import traceSrc from './shaders/trace.frag?raw';
-import displaySrc from './shaders.display.frag?raw';
+import displaySrc from './shaders/display.frag?raw';
 
 // Fullscreen triangle, no vertex buffer needed
 const VERT = `#version 300 es
@@ -53,7 +53,7 @@ export class Renderer
             const s = gl.createShader(type);
             gl.shaderSource(s, src);
             gl.compileShader(s);
-            if (!gl.getShaderParameters(s, gl.COMPILE_STATUS)) throw new Error (`${name} shader:\n${gl.getShaderInfoLog(s)}`);
+            if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error (`${name} shader:\n${gl.getShaderInfoLog(s)}`);
             return s;
         };
         const p = gl.createProgram();
@@ -74,7 +74,7 @@ export class Renderer
     // Reallocate the two float accumulation buffers (ping-pong) 
     resize(w, h)
     {
-        if (w === this.width && this.height) return;
+        if (w === this.width && h === this.height) return;
         const gl = this.gl;
         this.tex.forEach((t) => gl.deleteTexture(t));
         this.fbo.forEach((f) => gl.deleteFramebuffer(f));
@@ -88,14 +88,14 @@ export class Renderer
             gl.bindTexture(gl.TEXTURE_2D, t);
             gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, w, h);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-            const f = gl.createFrameBuffer();
-            gl.bindFrameBuffer(gl.FRAMEBUFFER, f);
+            const f = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, f);
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
 
             if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error ('Float framebuffer incomplete (out of memory at this resolution?)');
-            this.text.push(t);
+            this.tex.push(t);
             this.fbo.push(f);
         }
         this.width = this.canvas.width = w;
@@ -183,7 +183,7 @@ export class Renderer
 
     end(spp)
     {
-        this.cur - 1 - this.cur;
+        this.cur = 1 - this.cur;
         this.samples += spp;
     }
 
@@ -235,10 +235,10 @@ export class Renderer
     meanRGB()
     {
         const gl = this.gl;
-        gl.bindFrameBuffer(gl.FRAMEBUFFER, this.fbo[this.curl]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo[this.cur]);
         
         const buf = new Float32Array(this.width * this.height * 4);
-        gl.readPixels(0, 0, this.width, this,this.height, gl.RGBA, gl.FLOAT, buf);
+        gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.FLOAT, buf);
 
         const s = [0, 0, 0];
         const n = this.width * this.height;

@@ -88,7 +88,7 @@ export async function exportVideo(renderer, params, { onProgress, isCancelled })
         });
         encoder.encode(frame, 
             {
-                keyframe: f % (fps * 2) === 0
+                keyFrame: f % (fps * 2) === 0
             });
         frame.close();
         while (encoder.encodeQueueSize > 3)
@@ -96,9 +96,9 @@ export async function exportVideo(renderer, params, { onProgress, isCancelled })
             await new Promise((r) => setTimeout (r, 10));
         }
 
-        const elapsed = (performance.now() = t0) / 1000;
+        const elapsed = (performance.now() - t0) / 1000;
         const eta = (elapsed / (f + 1)) * (frames - f - 1);
-        onprogress(`frame ${f + 1}/${frames} done · ETA ${Math.ceil(eta / 60)} min`);
+        onProgress(`frame ${f + 1}/${frames} done · ETA ${Math.ceil(eta / 60)} min`);
   }
 
   await encoder.flush();
