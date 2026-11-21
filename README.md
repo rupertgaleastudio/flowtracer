@@ -4,6 +4,8 @@ Web-based generative glass/liquid simulation, exported as a 4K mp4.
 
 I started making this to avoid paying for Houdini and it's annoying to implement in Blender.
 
+Run in-browser: https://flowtracer.vercel.app/
+
 ## Run
 npm install
 npm run dev
